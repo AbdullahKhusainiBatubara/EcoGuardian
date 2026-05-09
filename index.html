@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>EcoGuardian – Laporkan Masalah, Bangun Kota Lebih Baik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="shortcut icon" href="WhatsApp Image 2026-05-09 at 18.10.04.jpeg" type="image/x-icon">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g1:#22c55e;--g2:#16a34a;--dark:#0f172a;--dark2:#1e293b;
+      --text:#1e293b;--muted:#64748b;--bg:#f8fafc;--white:#fff;
+      --border:#e2e8f0;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
+      --radius:14px;--shadow:0 4px 32px rgba(0,0,0,.08);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--white);line-height:1.6}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:66px}
+    .logo{font-size:1.45rem;font-weight:800;color:var(--dark);letter-spacing:-.5px;text-decoration:none}
+    .logo em{font-style:normal;color:var(--g1)}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{text-decoration:none;color:var(--muted);font-size:.9rem;font-weight:600;transition:color .2s}
+    .nav-links a:hover{color:var(--g1)}
+    .nav-cta{display:flex;gap:.75rem;align-items:center}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem 1.25rem;border-radius:9px;font-size:.875rem;font-weight:700;cursor:pointer;border:none;transition:all .22s;text-decoration:none;font-family:inherit}
+    .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+    .btn-ghost:hover{border-color:var(--g1);color:var(--g1)}
+    .btn-green{background:var(--g1);color:#fff}
+    .btn-green:hover{background:var(--g2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(34,197,94,.35)}
+    .btn-lg{padding:.75rem 1.8rem;font-size:.95rem;border-radius:11px}
+    .btn-full{width:100%}
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+    .hamburger span{display:block;width:24px;height:2.5px;background:var(--dark);border-radius:2px;transition:all .3s}
+
+    /* DRAWER */
+    .drawer{display:none;position:fixed;top:66px;left:0;right:0;background:var(--white);border-bottom:1px solid var(--border);padding:1.5rem 6%;flex-direction:column;gap:.75rem;z-index:199;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    .drawer.open{display:flex}
+    .drawer a{text-decoration:none;color:var(--text);font-size:.95rem;font-weight:600;padding:.5rem 0;border-bottom:1px solid var(--border)}
+
+    /* HERO */
+    .hero{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:7rem 6% 6rem;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(34,197,94,.18) 0%,transparent 70%),var(--dark);position:relative;overflow:hidden}
+    .hero-dots{position:absolute;inset:0;z-index:0;background-image:radial-gradient(circle,rgba(255,255,255,.07) 1px,transparent 1px);background-size:32px 32px}
+    .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--g1);font-size:.8rem;font-weight:700;letter-spacing:.5px;padding:.35rem .9rem;border-radius:100px;margin-bottom:1.6rem;z-index:1}
+    .hero h1{position:relative;z-index:1;font-size:clamp(2.2rem,6vw,4rem);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:1.2rem}
+    .hero h1 span{color:var(--g1)}
+    .hero p{position:relative;z-index:1;color:rgba(255,255,255,.65);font-size:1.1rem;max-width:560px;margin:0 auto 2.5rem}
+    .hero-btns{position:relative;z-index:1;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+    .hero-stats{position:relative;z-index:1;display:flex;gap:3rem;justify-content:center;flex-wrap:wrap;margin-top:4rem;padding-top:3rem;border-top:1px solid rgba(255,255,255,.1)}
+    .h-stat-num{font-size:2rem;font-weight:800;color:#fff}
+    .h-stat-num span{color:var(--g1)}
+    .h-stat-lbl{font-size:.8rem;color:rgba(255,255,255,.5);margin-top:.15rem}
+
+    /* SECTIONS */
+    section{padding:5.5rem 6%}
+    .lbl{font-size:.72rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--g1);margin-bottom:.5rem}
+    .sec-title{font-size:clamp(1.65rem,3.5vw,2.4rem);font-weight:800;color:var(--dark);letter-spacing:-.5px;margin-bottom:.75rem}
+    .sec-sub{color:var(--muted);font-size:.97rem;max-width:520px}
+    .sec-hd{margin-bottom:3.5rem}
+    .sec-hd.center{text-align:center}
+    .sec-hd.center .sec-sub{margin:0 auto}
+
+    /* FEATURES */
+    .features{background:var(--bg)}
+    .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+    .feat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;transition:all .25s;position:relative;overflow:hidden}
+    .feat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g1),var(--g2));transform:scaleX(0);transition:transform .3s;transform-origin:left}
+    .feat-card:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+    .feat-card:hover::after{transform:scaleX(1)}
+    .feat-icon{font-size:2rem;margin-bottom:1rem}
+    .feat-card h3{font-size:1rem;font-weight:700;margin-bottom:.4rem;color:var(--dark)}
+    .feat-card p{font-size:.875rem;color:var(--muted);line-height:1.65}
+
+    /* STATS */
+    .stats-sec{background:var(--white)}
+    .stats-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+    .stat-box{padding:1.5rem;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border)}
+    .stat-num{font-size:2.2rem;font-weight:800;color:var(--dark)}
+    .stat-num em{font-style:normal;color:var(--g1)}
+    .stat-lbl{font-size:.82rem;color:var(--muted);margin-top:.25rem}
+
+    /* TESTIMONIALS */
+    .testi{background:var(--bg)}
+    .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+    .testi-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.8rem;transition:box-shadow .25s}
+    .testi-card:hover{box-shadow:var(--shadow)}
+    .stars{color:#f59e0b;margin-bottom:.75rem;font-size:.9rem;letter-spacing:2px}
+    .testi-card blockquote{font-size:.895rem;color:#475569;line-height:1.7;font-style:italic;margin-bottom:1.2rem}
+    .testi-author{display:flex;align-items:center;gap:.75rem}
+    .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.82rem}
+    .av-name{font-weight:700;font-size:.875rem}
+    .av-role{font-size:.77rem;color:var(--muted)}
+
+    /* HOW IT WORKS */
+    .hiw{background:var(--white)}
+    .hiw-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+    .steps{display:flex;flex-direction:column;gap:1.25rem}
+    .step{display:flex;gap:1.1rem;align-items:flex-start;padding:.85rem;border-radius:12px;cursor:pointer;transition:background .2s}
+    .step:hover{background:var(--bg)}
+    .step-n{width:40px;height:40px;min-width:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;background:var(--border);color:var(--muted);transition:all .3s}
+    .step.active .step-n{background:var(--g1);color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.4)}
+    .step-body h4{font-size:.95rem;font-weight:700;margin-bottom:.2rem;color:var(--muted);transition:color .3s}
+    .step.active .step-body h4{color:var(--dark)}
+    .step-body p{font-size:.85rem;color:var(--muted);line-height:1.6}
+    .hiw-visual{background:linear-gradient(145deg,#081208,#0c1f0d,#071507);border-radius:24px;min-height:480px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:2rem}
+    .hiw-visual::before{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,.15) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%)}
+    .demo-panel{position:relative;z-index:2;width:100%;max-width:300px}
+    .demo-screen{display:none}
+    .demo-screen.active{display:block;animation:scIn .32s ease forwards}
+    @keyframes scIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    .demo-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(16px);border-radius:18px;padding:1.4rem;color:#fff}
+    .dc-title{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.9rem}
+    .upload-zone{border:2px dashed rgba(34,197,94,.4);border-radius:12px;padding:1.2rem .9rem;text-align:center;cursor:pointer;transition:all .25s;background:rgba(34,197,94,.04)}
+    .upload-zone:hover,.upload-zone.drag{border-color:var(--g1);background:rgba(34,197,94,.1)}
+    .uz-icon{font-size:1.9rem;display:block;margin-bottom:.4rem}
+    .upload-zone p{font-size:.76rem;color:rgba(255,255,255,.5);line-height:1.55}
+    .upload-zone strong{color:var(--g1)}
+    .demo-preview{width:100%;height:100px;object-fit:cover;border-radius:10px;margin-bottom:.6rem;display:none}
+    .demo-preview.show{display:block}
+    .upload-ok{display:none;align-items:center;gap:.45rem;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.28);border-radius:9px;padding:.5rem .8rem;font-size:.76rem;color:var(--g1);font-weight:700;margin-top:.65rem;overflow:hidden}
+    .upload-ok.show{display:flex}
+    .di{width:100%;padding:.58rem .8rem;border-radius:8px;font-size:.8rem;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;outline:none;margin-bottom:.55rem;transition:border-color .2s;appearance:none}
+    .di::placeholder{color:rgba(255,255,255,.32)}
+    .di:focus{border-color:var(--g1)}
+    .di option{background:#132113;color:#fff}
+    .db{width:100%;padding:.6rem;border-radius:9px;font-size:.85rem;font-weight:700;cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;background:var(--g1);color:#fff;transition:all .22s;margin-top:.45rem}
+    .db:hover{background:var(--g2)}
+    .db:disabled{opacity:.38;cursor:not-allowed}
+    .db-ghost{width:100%;padding:.52rem;border-radius:9px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,.16);font-family:'Plus Jakarta Sans',sans-serif;background:transparent;color:rgba(255,255,255,.55);transition:all .22s;margin-top:.35rem}
+    .db-ghost:hover{border-color:rgba(255,255,255,.38);color:#fff}
+    .success-sc{text-align:center}
+    .success-ring{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 1rem;box-shadow:0 0 0 14px rgba(34,197,94,.12);animation:popIn .42s cubic-bezier(.17,.67,.51,1.4) forwards}
+    @keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+    .success-sc h3{font-size:1rem;font-weight:800;margin-bottom:.3rem}
+    .success-sc>p{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:.9rem;line-height:1.6}
+    .rpt-preview{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:.85rem;text-align:left;font-size:.75rem;margin-bottom:.85rem}
+    .rp-row{display:flex;justify-content:space-between;align-items:flex-start;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.07);gap:.4rem}
+    .rp-row:last-child{border-bottom:none}
+    .rp-lbl{color:rgba(255,255,255,.37);flex-shrink:0}
+    .rp-val{color:rgba(255,255,255,.84);font-weight:700;text-align:right;max-width:62%;word-break:break-word}
+    .status-pill{display:inline-flex;align-items:center;gap:.35rem;background:rgba(34,197,94,.17);border:1px solid rgba(34,197,94,.32);color:var(--g1);font-size:.71rem;font-weight:800;padding:.28rem .8rem;border-radius:100px}
+    .demo-dots{display:flex;gap:.45rem;justify-content:center;margin-top:1rem}
+    .demo-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s}
+    .demo-dot.active{background:var(--g1);width:20px;border-radius:3px}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    .shake{animation:shake .32s ease}
+
+    /* TPS MEDAN SECTION */
+    .tps-sec{background:var(--bg)}
+    .tps-map-full{border-radius:16px;overflow:hidden;position:relative;height:320px;margin-bottom:1.75rem;box-shadow:var(--shadow)}
+    .tps-map-full iframe{width:100%;height:100%;border:none;display:block}
+    .tps-map-overlay{position:absolute;top:.75rem;left:.75rem;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);border-radius:8px;padding:.4rem .85rem;color:#fff;font-size:.75rem;font-weight:600;z-index:2}
+    .tps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+    .tps-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;display:flex;align-items:center;gap:.85rem;transition:all .22s}
+    .tps-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:var(--g1)}
+    .tps-icon{font-size:1.6rem;flex-shrink:0}
+    .tps-card h4{font-size:.85rem;font-weight:700;color:var(--dark);margin-bottom:.2rem}
+    .tps-card .tps-loc{font-size:.73rem;color:var(--muted);margin-bottom:.3rem}
+    .tps-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:.18rem .55rem;border-radius:100px}
+    .tps-badge.aktif{background:#dcfce7;color:var(--g2)}
+    .tps-badge.penuh{background:#fee2e2;color:var(--red)}
+    .tps-badge.darurat{background:#fef3c7;color:#b45309}
+    .tps-cta{margin-top:1.5rem;padding:1.1rem 1.4rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:12px;border:1px solid #bbf7d0;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    .tps-cta p{font-size:.875rem;color:var(--g2);font-weight:600;margin:0}
+    .tps-cta span{font-size:.8rem;color:var(--muted);font-weight:400}
+    .tps-pin{display:block;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);color:#fff;font-size:.72rem;font-weight:600;padding:.3rem .7rem;border-radius:6px;text-decoration:none;transition:background .2s;white-space:nowrap}
+    .tps-pin:hover{background:var(--g2)}
+
+    /* CTA */
+    .cta-sec{background:linear-gradient(135deg,var(--dark) 0%,#0d3320 100%);text-align:center;padding:6rem 6%}
+    .cta-sec h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:#fff;margin-bottom:.75rem}
+    .cta-sec p{color:rgba(255,255,255,.6);margin-bottom:2rem;font-size:1.05rem}
+
+    /* FAQ */
+    .faq-sec{background:var(--white)}
+    .faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2.5rem}
+    .faq-item{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .faq-q{width:100%;background:none;border:none;padding:1.1rem 1.4rem;text-align:left;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:1rem;font-family:inherit;color:var(--dark);transition:background .2s}
+    .faq-q:hover{background:var(--bg)}
+    .faq-icon{font-size:1.3rem;color:var(--g1);transition:transform .3s;flex-shrink:0}
+    .faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;font-size:.875rem;color:var(--muted);padding:0 1.4rem;line-height:1.7}
+    .faq-item.open .faq-a{max-height:200px;padding:0 1.4rem 1.2rem}
+    .faq-item.open .faq-icon{transform:rotate(45deg)}
+
+    /* FOOTER */
+    footer{background:var(--dark);color:rgba(255,255,255,.65);padding:4rem 6% 2rem}
+    .footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid rgba(255,255,255,.08)}
+    .footer-logo{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.75rem;display:block}
+    .footer-logo em{font-style:normal;color:var(--g1)}
+    .footer-brand p{font-size:.85rem;line-height:1.75;max-width:230px}
+    .footer-col h4{color:#fff;font-size:.88rem;font-weight:700;margin-bottom:.9rem}
+    .footer-col ul{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+    .footer-col ul a{text-decoration:none;color:rgba(255,255,255,.55);font-size:.84rem;transition:color .2s}
+    .footer-col ul a:hover{color:var(--g1)}
+    .footer-bottom{padding-top:1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:.82rem;flex-wrap:wrap;gap:1rem}
+    .socials{display:flex;gap:.75rem}
+    .socials a{width:34px;height:34px;border:1px solid rgba(255,255,255,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);text-decoration:none;font-size:.85rem;transition:all .2s}
+    .socials a:hover{border-color:var(--g1);color:var(--g1)}
+
+    /* MODAL */
+    .overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1.5rem}
+    .overlay.open{display:flex}
+    .modal{background:var(--white);border-radius:20px;width:100%;max-width:460px;padding:2.5rem;position:relative;animation:mIn .3s ease;max-height:90vh;overflow-y:auto}
+    @keyframes mIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+    .modal-close{position:absolute;top:1.25rem;right:1.25rem;width:32px;height:32px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .2s}
+    .modal-close:hover{background:var(--border)}
+    .modal h2{font-size:1.5rem;font-weight:800;color:var(--dark);margin-bottom:.35rem}
+    .modal .modal-sub{font-size:.875rem;color:var(--muted);margin-bottom:1.75rem}
+    .form-group{margin-bottom:1.1rem}
+    .form-group label{display:block;font-size:.82rem;font-weight:700;color:var(--dark);margin-bottom:.4rem}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    input[type=email],input[type=text],input[type=password],textarea,select{width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;outline:none;font-family:inherit;transition:border-color .2s;background:var(--white);color:var(--text)}
+    input:focus,textarea:focus,select:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+    .divider{display:flex;align-items:center;gap:.75rem;margin:1.2rem 0;color:var(--muted);font-size:.8rem}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .switch-link{text-align:center;font-size:.875rem;margin-top:1.25rem;color:var(--muted)}
+    .switch-link a{color:var(--g1);font-weight:700;cursor:pointer;text-decoration:none}
+    .msg{padding:.75rem 1rem;border-radius:9px;font-size:.875rem;margin-bottom:1rem;display:none}
+    .msg.error{background:#fef2f2;color:var(--red);border:1px solid #fecaca;display:block}
+    .msg.success{background:#f0fdf4;color:var(--g2);border:1px solid #bbf7d0;display:block}
+    .pw-wrap{position:relative}
+    .pw-wrap input{padding-right:2.75rem}
+    .pw-toggle{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;background:var(--dark);color:#fff;padding:.9rem 1.4rem;border-radius:12px;font-size:.875rem;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.25);transform:translateY(100px);opacity:0;transition:all .35s;pointer-events:none}
+    .toast.show{transform:none;opacity:1}
+    .toast.green{background:var(--g2)}
+    .toast.red{background:var(--red)}
+
+    /* USER MENU */
+    .user-menu{position:relative}
+    .user-btn{display:flex;align-items:center;gap:.5rem;background:none;border:1.5px solid var(--border);padding:.45rem .9rem;border-radius:9px;cursor:pointer;font-family:inherit;font-size:.875rem;font-weight:700;color:var(--dark);transition:all .2s}
+    .user-btn:hover{border-color:var(--g1);color:var(--g1)}
+    .user-btn img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+    .user-dropdown{display:none;position:absolute;top:calc(100% + .5rem);right:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);min-width:180px;box-shadow:var(--shadow);z-index:300;overflow:hidden}
+    .user-dropdown.open{display:block}
+    .user-dropdown a,.user-dropdown button{display:block;width:100%;padding:.75rem 1.1rem;text-decoration:none;color:var(--text);font-size:.875rem;font-weight:600;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;transition:background .15s}
+    .user-dropdown a:hover,.user-dropdown button:hover{background:var(--bg)}
+    .user-dropdown button.danger{color:var(--red)}
+    .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* REVEAL */
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+    .reveal.visible{opacity:1;transform:none}
+
+    /* RESPONSIVE */
+    @media(max-width:1024px){.feat-grid{grid-template-columns:repeat(2,1fr)}.footer-top{grid-template-columns:1fr 1fr}.tps-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:768px){.nav-links,.nav-cta{display:none}.hamburger{display:flex}.feat-grid,.testi-grid{grid-template-columns:1fr}.stats-inner,.hiw-inner{grid-template-columns:1fr;gap:2.5rem}.faq-grid{grid-template-columns:1fr}.footer-top{grid-template-columns:1fr 1fr}.tps-grid{grid-template-columns:1fr}.tps-map-full{height:220px}section{padding:3.5rem 5%}.form-row{grid-template-columns:1fr}.hero-stats{gap:1.5rem}}
+    @media(max-width:480px){.footer-top{grid-template-columns:1fr}.footer-bottom{flex-direction:column}.stats-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Eco<em>Guardian</em></a>
+  <ul class="nav-links">
+    <li><a href="#features">Fitur</a></li>
+    <li><a href="#hiw">Cara Kerja</a></li>
+    <li><a href="#testi">Testimoni</a></li>
+    <li><a href="#tps">TPS Medan</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta" id="navCta">
+    <button class="btn btn-ghost" onclick="openModal('login')">Masuk</button>
+    <button class="btn btn-green" onclick="openModal('register')">Daftar Sekarang</button>
+  </div>
+  <div class="nav-cta" id="navUser" style="display:none">
+    <div class="user-menu">
+      <button class="user-btn" onclick="toggleDropdown()" id="userBtn">
+        <img id="navAvatar" src="" alt="" style="display:none"/> 
+        <span id="navAvatarFallback">👤</span>
+        <span id="navName"></span> ▾
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="dashboard.html">📊 Dashboard Saya</a>
+        <button class="danger" onclick="logout()">🚪 Keluar</button>
+      </div>
+    </div>
+  </div>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="drawer" id="drawer">
+  <a href="#features">Fitur</a>
+  <a href="#hiw">Cara Kerja</a>
+  <a href="#testi">Testimoni</a>
+  <a href="#tps">TPS Medan</a>
+  <a href="#faq">FAQ</a>
+  <button class="btn btn-green" onclick="openModal('login')">Masuk / Daftar</button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-dots"></div>
+  <div class="hero-badge">🌟 Platform Pelaporan #1 di Medan</div>
+  <h1>Laporkan masalah sekarang,<br><span>bangun kota lebih baik</span></h1>
+  <p>Berdayakan komunitas Anda untuk melaporkan, melacak, dan menyelesaikan masalah lingkungan secara real-time. Cepat, mudah, dan efektif.</p>
+  <div class="hero-btns">
+    <button class="btn btn-green btn-lg" onclick="openModal('register')">Daftar Sekarang →</button>
+    <a href="#hiw" class="btn btn-lg" style="background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.25)">Lihat Cara Kerjanya</a>
+  </div>
+  <div class="hero-stats">
+    <div><div class="h-stat-num">47<span>,200</span></div><div class="h-stat-lbl">Laporan masuk</div></div>
+    <div><div class="h-stat-num">38<span>,900</span></div><div class="h-stat-lbl">Masalah terselesaikan</div></div>
+    <div><div class="h-stat-num">156<span>,400</span></div><div class="h-stat-lbl">Pengguna aktif</div></div>
+    <div><div class="h-stat-num">2<span>,847</span></div><div class="h-stat-lbl">Kota tercakup</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="sec-hd center reveal">
+    <div class="lbl">Apa Yang Kami Tawarkan</div>
+    <h2 class="sec-title">Semua yang kamu butuhkan</h2>
+    <p class="sec-sub">Toolkit lengkap untuk komunitas, pemerintah, dan organisasi agar pelaporan masalah menjadi lebih efisien.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card reveal"><div class="feat-icon">📸</div><h3>Upload Foto Bukti</h3><p>Lampirkan foto langsung saat membuat laporan untuk memperjelas masalah dan mempercepat penanganan.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">📍</div><h3>Pinpoint Lokasi</h3><p>Deteksi otomatis atau pilih manual lokasi persis masalah menggunakan antarmuka peta interaktif kami.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🔔</div><h3>Notifikasi Real-time</h3><p>Dapatkan notifikasi instan saat laporan Anda diterima, sedang diproses, atau sudah diselesaikan.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">📊</div><h3>Dashboard Analitik</h3><p>Lacak tren laporan, waktu penyelesaian, dan metrik kinerja melalui dashboard manajemen yang intuitif.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🤝</div><h3>Kolaborasi Tim</h3><p>Tugaskan laporan ke anggota tim yang tepat, tambahkan komentar, dan berkolaborasi untuk menyelesaikan masalah.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🔒</div><h3>Aman &amp; Privat</h3><p>Data Anda dilindungi dengan enkripsi tingkat enterprise. Laporkan dengan percaya diri dan jaga privasi Anda.</p></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-sec">
+  <div class="stats-inner">
+    <div class="reveal">
+      <div class="lbl">Angka Nyata dari Orang Nyata</div>
+      <h2 class="sec-title">Dipercaya komunitas Medan &amp; sekitarnya</h2>
+      <p class="sec-sub" style="margin-bottom:1.75rem">Ribuan warga Medan menggunakan EcoGuardian untuk mengelola dan menyelesaikan masalah lingkungan lebih cepat dari sebelumnya.</p>
+      <button class="btn btn-green" onclick="openModal('register')">Bergabung Sekarang</button>
+    </div>
+    <div class="stats-grid reveal">
+      <div class="stat-box"><div class="stat-num">47<em>,200</em></div><div class="stat-lbl">Laporan masuk</div></div>
+      <div class="stat-box"><div class="stat-num">38<em>,900</em></div><div class="stat-lbl">Masalah terselesaikan</div></div>
+      <div class="stat-box"><div class="stat-num">156<em>,400</em></div><div class="stat-lbl">Pengguna aktif</div></div>
+      <div class="stat-box"><div class="stat-num">2<em>,847</em></div><div class="stat-lbl">Kota tercakup</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testi" id="testi">
+  <div class="sec-hd center reveal">
+    <div class="lbl">Cerita Pengguna</div>
+    <h2 class="sec-title">Apa kata mereka?</h2>
+    <p class="sec-sub">Dengarkan dari warga Medan yang menggunakan EcoGuardian setiap hari untuk membuat lingkungan mereka lebih baik.</p>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal"><div class="stars">★★★★★</div><blockquote>"EcoGuardian mengubah cara kota kami menangani permintaan pemeliharaan. Masalah yang biasanya butuh berminggu-minggu kini selesai dalam hitungan hari."</blockquote><div class="testi-author"><div class="av">SR</div><div><div class="av-name">Sarah Ritonga</div><div class="av-role">Warga, Medan Sunggal</div></div></div></div>
+    <div class="testi-card reveal"><div class="stars">★★★★★</div><blockquote>"Saya melaporkan lampu jalan yang rusak dan diperbaiki dalam 48 jam. Tidak pernah membayangkan melaporkan masalah bisa semudah dan seefektif ini!"</blockquote><div class="testi-author"><div class="av">BW</div><div><div class="av-name">Budi Wirawan</div><div class="av-role">Warga, Medan Baru</div></div></div></div>
+    <div class="testi-card reveal"><div class="stars">★★★★☆</div><blockquote>"Koordinasi tim kami meningkat drastis. Dashboard EcoGuardian membantu kami memprioritaskan yang terpenting dan memastikan tidak ada yang terlewat."</blockquote><div class="testi-author"><div class="av">AL</div><div><div class="av-name">Aisha Lubis</div><div class="av-role">Petugas Kebersihan, Medan</div></div></div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="hiw" id="hiw">
+  <div class="hiw-inner">
+    <div>
+      <div class="sec-hd reveal">
+        <div class="lbl">Cara Kerja</div>
+        <h2 class="sec-title">Tiga langkah mudah untuk mulai</h2>
+        <p class="sec-sub">Melaporkan dan menyelesaikan masalah belum pernah semudah ini. <strong>Coba langsung di panel kanan!</strong></p>
+      </div>
+      <div class="steps">
+        <div class="step active reveal" id="stepTab0" onclick="demoGo(0)"><div class="step-n">1</div><div class="step-body"><h4>Upload foto seketika</h4><p>Foto masalah dan unggah langsung dari ponsel atau desktop dalam hitungan detik.</p></div></div>
+        <div class="step reveal" id="stepTab1" onclick="demoGo(1)"><div class="step-n">2</div><div class="step-body"><h4>Deskripsikan &amp; tandai lokasi</h4><p>Tambahkan deskripsi singkat dan pin lokasi tepat di peta agar petugas tahu harus ke mana.</p></div></div>
+        <div class="step reveal" id="stepTab2" onclick="demoGo(2)"><div class="step-n">3</div><div class="step-body"><h4>Pantau hingga selesai</h4><p>Pantau progres laporan secara real-time dan terima notifikasi di setiap tahap proses.</p></div></div>
+      </div>
+    </div>
+    <div class="hiw-visual reveal">
+      <div class="demo-panel">
+        <div class="demo-screen active" id="demoS0">
+          <div class="demo-card">
+            <div class="dc-title">📸 Langkah 1 — Upload Foto</div>
+            <img class="demo-preview" id="demoPreview" src="" alt="preview"/>
+            <div class="upload-zone" id="uploadZone"><span class="uz-icon">🖼️</span><p>Klik atau seret foto ke sini<br/><strong>JPG · PNG · WEBP</strong> · Maks 5MB</p></div>
+            <input type="file" id="demoFileInput" accept="image/*" style="display:none"/>
+            <div class="upload-ok" id="uploadOk">✅ <span id="uploadName">foto.jpg</span></div>
+            <button class="db" id="demoNextBtn" disabled>Lanjut: Isi Detail →</button>
+          </div>
+        </div>
+        <div class="demo-screen" id="demoS1">
+          <div class="demo-card" id="detailCard">
+            <div class="dc-title">📝 Langkah 2 — Detail Laporan</div>
+            <select class="di" id="demoKat"><option value="">🏷️ Pilih kategori...</option><option value="jalan">🛣️ Jalan &amp; Infrastruktur</option><option value="lampu">💡 Penerangan Jalan</option><option value="sampah">🗑️ Sampah &amp; Sanitasi</option><option value="keamanan">🚨 Keselamatan Publik</option><option value="taman">🌳 Taman &amp; Area Hijau</option><option value="air">💧 Air &amp; Drainase</option></select>
+            <input class="di" type="text" id="demoJudul" placeholder="✏️ Judul singkat masalah..." maxlength="60"/>
+            <input class="di" type="text" id="demoLok" placeholder="📍 Lokasi kejadian..."/>
+            <select class="di" id="demoPrioritas"><option value="">⚡ Pilih prioritas...</option><option value="low">🟢 Rendah</option><option value="medium">🟡 Sedang</option><option value="high">🔴 Tinggi</option></select>
+            <button class="db" id="demoSubmitBtn">Kirim Laporan 🚀</button>
+            <button class="db-ghost" id="demoBackBtn">← Kembali</button>
+          </div>
+        </div>
+        <div class="demo-screen" id="demoS2">
+          <div class="demo-card success-sc">
+            <div class="success-ring">✅</div>
+            <h3>Laporan Terkirim!</h3>
+            <p>Laporan kamu sudah diterima dan sedang kami tindak lanjuti.</p>
+            <div class="rpt-preview" id="rptPreview"></div>
+            <div class="status-pill">🔔 Sedang Diproses</div>
+            <button class="db-ghost" id="demoResetBtn" style="margin-top:1rem">↩ Coba lagi dari awal</button>
+          </div>
+        </div>
+        <div class="demo-dots"><div class="demo-dot active" id="dot0"></div><div class="demo-dot" id="dot1"></div><div class="demo-dot" id="dot2"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TPS MEDAN -->
+<section class="tps-sec" id="tps">
+  <div class="sec-hd center reveal">
+    <div class="lbl">Lokasi TPS Medan</div>
+    <h2 class="sec-title">Tempat Pembuangan Sementara di Kota Medan</h2>
+    <p class="sec-sub">Informasi lokasi TPS resmi di Medan. Laporkan masalah kebersihan di sekitar area ini melalui EcoGuardian.</p>
+  </div>
+
+  <!-- Peta penuh - OpenStreetMap (gratis, tanpa API key) -->
+  <div class="tps-map-full reveal">
+    <div id="tpsMap" style="width:100%;height:100%;border-radius:16px;z-index:1"></div>
+    <div class="tps-map-overlay">🗺️ Peta TPS Kota Medan · <span style="opacity:.7;font-weight:400">Klik marker untuk info lokasi</span></div>
+  </div>
+
+  <!-- Grid kartu TPS -->
+  <div class="tps-grid">
+    <div class="tps-card reveal">
+      <div class="tps-icon">🗑️</div>
+      <div>
+        <h4>TPS Simpang Pos</h4>
+        <div class="tps-loc">📍 Jl. Gagak Hitam, Medan Sunggal</div>
+        <span class="tps-badge aktif">✅ Beroperasi</span>
+      </div>
+    </div>
+    <div class="tps-card reveal">
+      <div class="tps-icon">🗑️</div>
+      <div>
+        <h4>TPS Polonia</h4>
+        <div class="tps-loc">📍 Jl. Imam Bonjol, Medan Polonia</div>
+        <span class="tps-badge aktif">✅ Beroperasi</span>
+      </div>
+    </div>
+    <div class="tps-card reveal">
+      <div class="tps-icon">🗑️</div>
+      <div>
+        <h4>TPS Aksara</h4>
+        <div class="tps-loc">📍 Jl. Aksara, Medan Tembung</div>
+        <span class="tps-badge darurat">⚠️ Sering Penuh</span>
+      </div>
+    </div>
+    <div class="tps-card reveal">
+      <div class="tps-icon">♻️</div>
+      <div>
+        <h4>TPS Amplas</h4>
+        <div class="tps-loc">📍 Jl. Sisingamangaraja, Medan Amplas</div>
+        <span class="tps-badge aktif">✅ Beroperasi</span>
+      </div>
+    </div>
+    <div class="tps-card reveal">
+      <div class="tps-icon">🗑️</div>
+      <div>
+        <h4>TPS Helvetia</h4>
+        <div class="tps-loc">📍 Jl. Veteran, Medan Helvetia</div>
+        <span class="tps-badge aktif">✅ Beroperasi</span>
+      </div>
+    </div>
+    <div class="tps-card reveal">
+      <div class="tps-icon">🗑️</div>
+      <div>
+        <h4>TPS Belawan</h4>
+        <div class="tps-loc">📍 Jl. Yos Sudarso, Medan Belawan</div>
+        <span class="tps-badge aktif">✅ Beroperasi</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="tps-cta reveal">
+    <div>
+      <p>💡 Temukan masalah di sekitar TPS? <span>Laporkan tumpukan sampah ilegal atau pencemaran lingkungan.</span></p>
+    </div>
+    <button class="btn btn-green" onclick="openModal('register')" style="white-space:nowrap">Buat Laporan →</button>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec">
+  <div class="reveal">
+    <h2>Mulai perbaiki kotamu hari ini</h2>
+    <p>Bergabung dengan 156.000+ pengguna yang sudah membuat perubahan nyata di Kota Medan.</p>
+    <button class="btn btn-green btn-lg" onclick="openModal('register')">Daftar Sekarang →</button>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-sec" id="faq">
+  <div class="sec-hd center reveal">
+    <div class="lbl">Pertanyaan</div>
+    <h2 class="sec-title">Pertanyaan yang sering ditanyakan</h2>
+    <p class="sec-sub">Semua yang perlu kamu ketahui tentang EcoGuardian dan cara penggunaannya.</p>
+  </div>
+  <div class="faq-grid">
+    <div class="faq-item"><button class="faq-q">Apakah EcoGuardian gratis digunakan? <span class="faq-icon">+</span></button><div class="faq-a">Ya! EcoGuardian sepenuhnya gratis untuk semua pengguna. Daftar sekarang dan mulai laporkan masalah di lingkungan kamu tanpa biaya apapun.</div></div>
+    <div class="faq-item"><button class="faq-q">Seberapa cepat masalah diselesaikan? <span class="faq-icon">+</span></button><div class="faq-a">Waktu penyelesaian bervariasi berdasarkan jenis masalah dan lokasi. Rata-rata, masalah yang dilaporkan melalui EcoGuardian diselesaikan 3x lebih cepat daripada metode pelaporan tradisional.</div></div>
+    <div class="faq-item"><button class="faq-q">Bisakah saya melampirkan foto? <span class="faq-icon">+</span></button><div class="faq-a">Ya! Kamu bisa upload foto langsung saat membuat laporan. Format yang didukung: JPG, PNG, dan WEBP dengan ukuran maksimal 5MB.</div></div>
+    <div class="faq-item"><button class="faq-q">Apakah nomor laporan saya berubah? <span class="faq-icon">+</span></button><div class="faq-a">Tidak. Sistem EcoGuardian menggunakan nomor urut yang konsisten. Jika ada laporan yang dihapus, nomor urut akan otomatis diperbarui agar tetap rapi dan berurutan.</div></div>
+    <div class="faq-item"><button class="faq-q">Apakah website ini sudah bisa digunakan dalam perangkat mobile? <span class="faq-icon">+</span></button><div class="faq-a">Ya! EcoGuardian tersedia di perangkat mobile . Kamu juga bisa menggunakan web lengkap di perangkat apa pun melalui browser.</div></div>
+    <div class="faq-item"><button class="faq-q">Bagaimana cara mengubah foto profil? <span class="faq-icon">+</span></button><div class="faq-a">Buka Dashboard → Profil Saya → klik area foto profil → pilih foto baru dari perangkat kamu. Format yang didukung: JPG, PNG, WEBP maks 5MB.</div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <span class="footer-logo">Eco<em>Guardian</em></span>
+      <p>Mewujudkan Medan yang lebih bersih dan berkelanjutan, dimulai dari satu laporan pada satu waktu. Bersama ribuan warga, kita bergerak menjaga lingkungan dan membangun kota yang lebih baik untuk masa depan.</p>
+    </div>
+    <div class="footer-col"><h4>Navigasi</h4><ul>
+      <li><a href="#features">Fitur</a></li>
+      <li><a href="#hiw">Cara Kerja</a></li>
+      <li><a href="#testi">Testimoni</a></li>
+      <li><a href="#tps">TPS Medan</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Akun</h4><ul>
+      <li><a href="#" onclick="openModal('register')">Daftar Sekarang</a></li>
+      <li><a href="#" onclick="openModal('login')">Masuk</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Dukungan</h4><ul>
+      <li><a href="#faq">Pusat Bantuan</a></li>
+      <li><a href="#">Kontak</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 EcoGuardian. Seluruh hak cipta dilindungi.</span><div class="socials"><a href="#" title="Twitter">𝕏</a><a href="#" title="LinkedIn">in</a><a href="#" title="GitHub">⌥</a><a href="#" title="Instagram">◎</a></div></div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    <h2>Selamat Datang 👋</h2>
+    <p class="modal-sub">Masuk ke akun EcoGuardian kamu</p>
+    <div class="msg" id="loginMsg"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="kamu@email.com"/></div>
+    <div class="form-group"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/><button class="pw-toggle" onclick="togglePw('loginPass',this)">👁</button></div></div>
+    <button class="btn btn-green btn-full" style="margin-top:.5rem" id="loginBtn" onclick="doLogin()">Masuk</button>
+    <div class="divider">atau</div>
+    <div class="switch-link">Belum punya akun? <a onclick="switchModal('loginModal','registerModal')">Daftar sekarang</a></div>
+    <div style="margin-top:.75rem;text-align:center;font-size:.8rem;color:var(--muted)">Demo: <strong>admin@fixit.com</strong> / <strong>password123</strong></div>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="overlay" id="registerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+    <h2>Buat Akun Baru 🚀</h2>
+    <p class="modal-sub">Bergabung dengan komunitas EcoGuardian hari ini dan mulai buat laporan!</p>
+    <div class="msg" id="registerMsg"></div>
+    <div class="form-group"><label>Nama Lengkap</label><input type="text" id="regName" placeholder="Nama kamu"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="kamu@email.com"/></div>
+    <div class="form-group"><label>Password</label><div class="pw-wrap"><input type="password" id="regPass" placeholder="Min. 6 karakter"/><button class="pw-toggle" onclick="togglePw('regPass',this)">👁</button></div></div>
+    <div class="form-group"><label>Konfirmasi Password</label><div class="pw-wrap"><input type="password" id="regPass2" placeholder="Ulangi password" onkeydown="if(event.key==='Enter')doRegister()"/><button class="pw-toggle" onclick="togglePw('regPass2',this)">👁</button></div></div>
+    <button class="btn btn-green btn-full" style="margin-top:.5rem" id="regBtn" onclick="doRegister()">Daftar Sekarang</button>
+    <div class="divider">atau</div>
+    <div class="switch-link">Sudah punya akun? <a onclick="switchModal('registerModal','loginModal')">Masuk di sini</a></div>
+  </div>
+</div>
+
+<script>
+var BASE_URL = 'http://localhost/fixit/api';
+var currentUser = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  initAuth();
+  initScrollReveal();
+  initFaq();
+  initHamburger();
+  initClickOutside();
+  initDemo();
+  initModalOverlay();
+});
+
+/* AUTH */
+async function initAuth() {
+  var token = localStorage.getItem('fixit_token');
+  if (!token) return;
+  try {
+    var res = await apiFetch('auth.php?action=me');
+    if (res.success) setLoggedIn(res.user);
+    else localStorage.removeItem('fixit_token');
+  } catch(e) { localStorage.removeItem('fixit_token'); }
+}
+
+function setLoggedIn(user) {
+  currentUser = user;
+  document.getElementById('navCta').style.display = 'none';
+  document.getElementById('navUser').style.display = 'flex';
+  document.getElementById('navName').textContent = user.name.split(' ')[0];
+  var img = document.getElementById('navAvatar');
+  var fb  = document.getElementById('navAvatarFallback');
+  if (user.avatar) {
+    img.src = BASE_URL.replace('/api','') + '/' + user.avatar;
+    img.style.display = 'block';
+    fb.style.display  = 'none';
+  }
+}
+
+function setLoggedOut() {
+  currentUser = null;
+  localStorage.removeItem('fixit_token');
+  document.getElementById('navCta').style.display = 'flex';
+  document.getElementById('navUser').style.display = 'none';
+}
+
+async function apiFetch(endpoint, method, body) {
+  method = method || 'GET';
+  var token = localStorage.getItem('fixit_token');
+  var opts  = { method: method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body)  opts.body = JSON.stringify(body);
+  var res = await fetch(BASE_URL + '/' + endpoint, opts);
+  return res.json();
+}
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var pass  = document.getElementById('loginPass').value;
+  if (!email || !pass) return showMsg('loginMsg','Isi semua field!','error');
+  setBtnLoad('loginBtn', true);
+  try {
+    var data = await apiFetch('auth.php?action=login','POST',{email:email,password:pass});
+    if (data.success) {
+      localStorage.setItem('fixit_token', data.token);
+      setLoggedIn(data.user);
+      closeModal('loginModal');
+      showToast('Selamat datang, ' + data.user.name.split(' ')[0] + '! 🎉','green');
+      setTimeout(function(){ window.location.href = 'dashboard.html#token=' + data.token; }, 800);
+    } else { showMsg('loginMsg', data.message, 'error'); }
+  } catch(e) { showMsg('loginMsg','Gagal terhubung ke server.','error'); }
+  setBtnLoad('loginBtn', false);
+}
+
+async function doRegister() {
+  var name  = document.getElementById('regName').value.trim();
+  var email = document.getElementById('regEmail').value.trim();
+  var pass  = document.getElementById('regPass').value;
+  var pass2 = document.getElementById('regPass2').value;
+  if (!name||!email||!pass) return showMsg('registerMsg','Isi semua field!','error');
+  if (pass!==pass2) return showMsg('registerMsg','Password tidak cocok!','error');
+  if (pass.length<6) return showMsg('registerMsg','Password minimal 6 karakter!','error');
+  setBtnLoad('regBtn',true);
+  try {
+    var data = await apiFetch('auth.php?action=register','POST',{name:name,email:email,password:pass});
+    if (data.success) {
+      localStorage.setItem('fixit_token', data.token);
+      setLoggedIn(data.user);
+      closeModal('registerModal');
+      showToast('Berhasil mendaftar! Selamat datang, ' + data.user.name.split(' ')[0] + '! 🎉','green');
+      setTimeout(function(){ window.location.href = 'dashboard.html#token=' + data.token; }, 800);
+    } else { showMsg('registerMsg', data.message, 'error'); }
+  } catch(e) { showMsg('registerMsg','Gagal terhubung ke server.','error'); }
+  setBtnLoad('regBtn',false);
+}
+
+async function logout() {
+  try { await apiFetch('auth.php?action=logout','POST'); } catch(e){}
+  setLoggedOut();
+  var dd = document.getElementById('userDropdown');
+  if (dd) dd.classList.remove('open');
+  showToast('Berhasil keluar. Sampai jumpa! 👋');
+}
+
+/* DEMO */
+var demoStep = 0;
+var KL = {jalan:'🛣️ Jalan & Infrastruktur',lampu:'💡 Penerangan Jalan',sampah:'🗑️ Sampah & Sanitasi',keamanan:'🚨 Keselamatan Publik',taman:'🌳 Taman & Area Hijau',air:'💧 Air & Drainase'};
+var PL = {low:'🟢 Rendah',medium:'🟡 Sedang',high:'🔴 Tinggi'};
+
+function initDemo() {
+  var fi = document.getElementById('demoFileInput');
+  var uz = document.getElementById('uploadZone');
+  uz.addEventListener('click', function(){ fi.click(); });
+  fi.addEventListener('change', function(e){ if(e.target.files[0]) processFile(e.target.files[0]); });
+  uz.addEventListener('dragover', function(e){ e.preventDefault(); uz.classList.add('drag'); });
+  uz.addEventListener('dragleave', function(){ uz.classList.remove('drag'); });
+  uz.addEventListener('drop', function(e){ e.preventDefault(); uz.classList.remove('drag'); if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+  document.getElementById('demoNextBtn').addEventListener('click', function(){ if(!this.disabled) demoSet(1); });
+  document.getElementById('demoSubmitBtn').addEventListener('click', demoSubmit);
+  document.getElementById('demoBackBtn').addEventListener('click', function(){ demoSet(0); });
+  document.getElementById('demoResetBtn').addEventListener('click', demoReset);
+}
+
+function processFile(f) {
+  if (!f.type.startsWith('image/')) { showToast('Hanya file gambar!','red'); return; }
+  if (f.size > 5*1024*1024) { showToast('Maks 5MB!','red'); return; }
+  var r = new FileReader();
+  r.onload = function(e) {
+    var p = document.getElementById('demoPreview');
+    p.src = e.target.result; p.classList.add('show');
+    document.getElementById('uploadZone').style.display = 'none';
+    document.getElementById('uploadName').textContent = f.name.slice(0,28);
+    document.getElementById('uploadOk').classList.add('show');
+    document.getElementById('demoNextBtn').disabled = false;
+  };
+  r.readAsDataURL(f);
+}
+
+function demoGo(s){ if(s<=demoStep) demoSet(s); }
+function demoSet(s){
+  if(s>=1 && document.getElementById('demoNextBtn').disabled) return;
+  demoStep=s;
+  for(var i=0;i<3;i++){
+    var sc=document.getElementById('demoS'+i); var d=document.getElementById('dot'+i); var t=document.getElementById('stepTab'+i);
+    if(sc) sc.classList.toggle('active',i===s);
+    if(d)  d.classList.toggle('active',i===s);
+    if(t)  t.classList.toggle('active',i===s);
+  }
+}
+function demoSubmit(){
+  var kat=document.getElementById('demoKat').value,judul=document.getElementById('demoJudul').value.trim(),lok=document.getElementById('demoLok').value.trim(),pri=document.getElementById('demoPrioritas').value;
+  if(!kat||!judul||!lok||!pri){ var c=document.getElementById('detailCard'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); showToast('Lengkapi semua field!','red'); return; }
+  var id=Math.floor(Math.random()*9000)+1000;
+  document.getElementById('rptPreview').innerHTML='<div class="rp-row"><span class="rp-lbl">ID</span><span class="rp-val">#'+id+'</span></div><div class="rp-row"><span class="rp-lbl">Kategori</span><span class="rp-val">'+(KL[kat]||kat)+'</span></div><div class="rp-row"><span class="rp-lbl">Judul</span><span class="rp-val">'+judul+'</span></div><div class="rp-row"><span class="rp-lbl">Lokasi</span><span class="rp-val">'+lok+'</span></div><div class="rp-row"><span class="rp-lbl">Prioritas</span><span class="rp-val">'+(PL[pri]||pri)+'</span></div>';
+  demoSet(2);
+}
+function demoReset(){
+  demoSet(0); demoStep=0;
+  var p=document.getElementById('demoPreview'); p.src=''; p.classList.remove('show');
+  document.getElementById('uploadZone').style.display='';
+  document.getElementById('uploadOk').classList.remove('show');
+  document.getElementById('demoNextBtn').disabled=true;
+  document.getElementById('demoFileInput').value='';
+  ['demoKat','demoJudul','demoLok','demoPrioritas'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+/* MODAL */
+function openModal(n){
+  var map={login:'loginModal',register:'registerModal'};
+  var el=document.getElementById(map[n]||n);
+  if(el){el.classList.add('open');document.body.style.overflow='hidden';}
+}
+function closeModal(id){
+  var el=document.getElementById(id);
+  if(el){el.classList.remove('open');document.body.style.overflow='';}
+  document.querySelectorAll('.msg').forEach(function(m){m.className='msg';});
+}
+function switchModal(f,t){closeModal(f);openModal(t);}
+function initModalOverlay(){
+  document.querySelectorAll('.overlay').forEach(function(ov){
+    ov.addEventListener('mousedown',function(e){ov._hit=(e.target===ov);});
+    ov.addEventListener('click',function(e){if(ov._hit&&e.target===ov)closeModal(ov.id);ov._hit=false;});
+  });
+  document.querySelectorAll('.modal').forEach(function(m){
+    m.addEventListener('mousedown',function(e){e.stopPropagation();});
+    m.addEventListener('click',function(e){e.stopPropagation();});
+  });
+}
+
+/* UI HELPERS */
+function showMsg(id,t,type){var el=document.getElementById(id);if(!el)return;el.textContent=t;el.className='msg '+type;}
+function setBtnLoad(id,l){var b=document.getElementById(id);if(!b)return;b.disabled=l;if(l){b._o=b.innerHTML;b.innerHTML='<span class="spinner"></span>';}else{b.innerHTML=b._o||b.innerHTML;}}
+var _tt;
+function showToast(t,type){type=type||'';var el=document.getElementById('toast');el.textContent=t;el.className='toast '+type+' show';clearTimeout(_tt);_tt=setTimeout(function(){el.classList.remove('show');},3200);}
+function togglePw(id,b){var i=document.getElementById(id);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';}
+function toggleDropdown(){document.getElementById('userDropdown').classList.toggle('open');}
+function initClickOutside(){document.addEventListener('click',function(e){var m=document.querySelector('.user-menu');if(m&&!m.contains(e.target))document.getElementById('userDropdown').classList.remove('open');});}
+function initHamburger(){document.getElementById('hamburger').addEventListener('click',function(){document.getElementById('drawer').classList.toggle('open');});}
+function initFaq(){document.querySelectorAll('.faq-q').forEach(function(b){b.addEventListener('click',function(){var i=b.parentElement,o=i.classList.contains('open');document.querySelectorAll('.faq-item').forEach(function(x){x.classList.remove('open');});if(!o)i.classList.add('open');});});}
+function initScrollReveal(){var ob=new IntersectionObserver(function(entries){entries.forEach(function(en,i){if(en.isIntersecting) {
+        setTimeout(function () { en.target.classList.add('visible'); }, i * 70);
+        ob.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(function (el) { ob.observe(el); });
+}
+
+/* LEAFLET MAP - TPS MEDAN */
+function initTpsMap() {
+  if (!document.getElementById('tpsMap')) return;
+  if (typeof L === 'undefined') { setTimeout(initTpsMap, 300); return; }
+
+  var map = L.map('tpsMap', { zoomControl: true, scrollWheelZoom: false }).setView([3.5952, 98.6700], 12);
+
+  // OpenStreetMap tiles (gratis, tanpa API key)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(map);
+
+  // Custom icon hijau untuk TPS
+  function createIcon(color) {
+    return L.divIcon({
+      className: '',
+      html: '<div style="background:' + color + ';width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"><div style="transform:rotate(45deg);text-align:center;line-height:26px;font-size:14px">🗑️</div></div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -34]
+    });
+  }
+
+  var iconAktif  = createIcon('#22c55e');
+  var iconDarurat = createIcon('#f59e0b');
+
+  var tpsData = [
+    { nama: 'TPS Simpang Pos',  lat: 3.6021, lng: 98.6388, alamat: 'Jl. Gagak Hitam, Medan Sunggal',        status: 'aktif',   label: '✅ Beroperasi' },
+    { nama: 'TPS Polonia',      lat: 3.5868, lng: 98.6528, alamat: 'Jl. Imam Bonjol, Medan Polonia',        status: 'aktif',   label: '✅ Beroperasi' },
+    { nama: 'TPS Aksara',       lat: 3.5923, lng: 98.7201, alamat: 'Jl. Aksara, Medan Tembung',             status: 'darurat', label: '⚠️ Sering Penuh' },
+    { nama: 'TPS Amplas',       lat: 3.5423, lng: 98.6901, alamat: 'Jl. Sisingamangaraja, Medan Amplas',    status: 'aktif',   label: '✅ Beroperasi' },
+    { nama: 'TPS Helvetia',     lat: 3.6321, lng: 98.6388, alamat: 'Jl. Veteran, Medan Helvetia',           status: 'aktif',   label: '✅ Beroperasi' },
+    { nama: 'TPS Belawan',      lat: 3.7923, lng: 98.6901, alamat: 'Jl. Yos Sudarso, Medan Belawan',        status: 'aktif',   label: '✅ Beroperasi' }
+  ];
+
+  tpsData.forEach(function(tps) {
+    var icon = tps.status === 'aktif' ? iconAktif : iconDarurat;
+    var popup = '<div style="font-family:Plus Jakarta Sans,sans-serif;min-width:180px">'
+      + '<div style="font-weight:800;font-size:.9rem;color:#0f172a;margin-bottom:.25rem">' + tps.nama + '</div>'
+      + '<div style="font-size:.75rem;color:#64748b;margin-bottom:.4rem">📍 ' + tps.alamat + '</div>'
+      + '<div style="display:inline-block;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;background:' + (tps.status === 'aktif' ? '#dcfce7;color:#16a34a' : '#fef3c7;color:#b45309') + '">' + tps.label + '</div>'
+      + '<br/><a href="https://maps.google.com/?q=' + encodeURIComponent(tps.nama + ' ' + tps.alamat) + '" target="_blank" style="display:inline-block;margin-top:.5rem;font-size:.72rem;font-weight:700;color:#22c55e;text-decoration:none">Buka di Google Maps →</a>'
+      + '</div>';
+    L.marker([tps.lat, tps.lng], { icon: icon }).addTo(map).bindPopup(popup, { maxWidth: 220 });
+  });
+}
+
+// Init map setelah halaman load
+window.addEventListener('load', initTpsMap);
+</script>
+</body>
+</html>
