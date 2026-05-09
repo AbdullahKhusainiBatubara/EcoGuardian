@@ -4,6 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>EcoGuardian – Laporkan Masalah, Bangun Kota Lebih Baik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- Primary Meta Tags -->
 <title>EcoGuardian - Platform Peduli Lingkungan</title>
 <meta name="title" content="EcoGuardian - Platform Peduli Lingkungan">
@@ -269,9 +272,71 @@
     .reveal.visible{opacity:1;transform:none}
 
     /* RESPONSIVE */
-    @media(max-width:1024px){.feat-grid{grid-template-columns:repeat(2,1fr)}.footer-top{grid-template-columns:1fr 1fr}.tps-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:768px){.nav-links,.nav-cta{display:none}.hamburger{display:flex}.feat-grid,.testi-grid{grid-template-columns:1fr}.stats-inner,.hiw-inner{grid-template-columns:1fr;gap:2.5rem}.faq-grid{grid-template-columns:1fr}.footer-top{grid-template-columns:1fr 1fr}.tps-grid{grid-template-columns:1fr}.tps-map-full{height:220px}section{padding:3.5rem 5%}.form-row{grid-template-columns:1fr}.hero-stats{gap:1.5rem}}
-    @media(max-width:480px){.footer-top{grid-template-columns:1fr}.footer-bottom{flex-direction:column}.stats-grid{grid-template-columns:1fr 1fr}}
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media(max-width:1024px){
+      .feat-grid{grid-template-columns:repeat(2,1fr)}
+      .testi-grid{grid-template-columns:repeat(2,1fr)}
+      .footer-top{grid-template-columns:1fr 1fr}
+      .tps-grid{grid-template-columns:repeat(2,1fr)}
+      .stats-inner{gap:3rem}
+      .hiw-inner{gap:3rem}
+    }
+    @media(max-width:768px){
+      /* NAV */
+      .nav-links,.nav-cta{display:none}
+      .hamburger{display:flex}
+      /* SECTIONS */
+      section{padding:3rem 5%}
+      .sec-hd{margin-bottom:2rem}
+      /* GRIDS */
+      .feat-grid,.testi-grid{grid-template-columns:1fr}
+      .stats-inner,.hiw-inner{grid-template-columns:1fr;gap:2rem}
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .faq-grid{grid-template-columns:1fr}
+      .tps-grid{grid-template-columns:1fr}
+      .form-row{grid-template-columns:1fr}
+      /* FOOTER */
+      .footer-top{grid-template-columns:1fr 1fr;gap:1.5rem}
+      /* HERO */
+      .hero{min-height:auto;padding:5rem 5% 4rem}
+      .hero h1{font-size:clamp(1.8rem,7vw,2.8rem)}
+      .hero p{font-size:.95rem}
+      .hero-stats{gap:1.25rem;margin-top:2.5rem;padding-top:2rem}
+      .h-stat-num{font-size:1.5rem}
+      .hero-btns{flex-direction:column;align-items:center}
+      .btn-lg{width:100%;max-width:280px;justify-content:center}
+      /* TPS MAP */
+      .tps-map-full{height:240px}
+      /* DEMO */
+      .hiw-visual{min-height:360px}
+      /* MODAL */
+      .modal{padding:1.75rem}
+      /* STATS */
+      .stat-box{padding:1rem}
+    }
+    @media(max-width:480px){
+      section{padding:2.5rem 4%}
+      .hero{padding:4rem 4% 3rem}
+      .hero-stats{flex-wrap:wrap;gap:1rem}
+      .hero-stats>div{flex:1;min-width:120px;text-align:center}
+      .h-stat-num{font-size:1.35rem}
+      .feat-grid{grid-template-columns:1fr}
+      .footer-top{grid-template-columns:1fr}
+      .footer-bottom{flex-direction:column;text-align:center}
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .tps-grid{grid-template-columns:1fr}
+      .tps-map-full{height:200px}
+      .tps-card{padding:.75rem}
+      .tps-cta{flex-direction:column;text-align:center}
+      .modal{padding:1.25rem;margin:.75rem}
+      .modal h2{font-size:1.25rem}
+      .hero-badge{font-size:.72rem}
+      .hero h1{font-size:clamp(1.6rem,8vw,2.4rem);letter-spacing:-.5px}
+      .hero-btns .btn-lg{font-size:.875rem;padding:.65rem 1.4rem}
+      .faq-grid{grid-template-columns:1fr}
+      .testi-grid{grid-template-columns:1fr}
+      .socials{justify-content:center}
+    }
   </style>
 </head>
 <body>
@@ -534,7 +599,7 @@
     <div class="faq-item"><button class="faq-q">Seberapa cepat masalah diselesaikan? <span class="faq-icon">+</span></button><div class="faq-a">Waktu penyelesaian bervariasi berdasarkan jenis masalah dan lokasi. Rata-rata, masalah yang dilaporkan melalui EcoGuardian diselesaikan 3x lebih cepat daripada metode pelaporan tradisional.</div></div>
     <div class="faq-item"><button class="faq-q">Bisakah saya melampirkan foto? <span class="faq-icon">+</span></button><div class="faq-a">Ya! Kamu bisa upload foto langsung saat membuat laporan. Format yang didukung: JPG, PNG, dan WEBP dengan ukuran maksimal 5MB.</div></div>
     <div class="faq-item"><button class="faq-q">Apakah nomor laporan saya berubah? <span class="faq-icon">+</span></button><div class="faq-a">Tidak. Sistem EcoGuardian menggunakan nomor urut yang konsisten. Jika ada laporan yang dihapus, nomor urut akan otomatis diperbarui agar tetap rapi dan berurutan.</div></div>
-    <div class="faq-item"><button class="faq-q">Apakah website ini sudah bisa digunakan dalam perangkat mobile? <span class="faq-icon">+</span></button><div class="faq-a">Ya! EcoGuardian tersedia di perangkat mobile . Kamu juga bisa menggunakan web lengkap di perangkat apa pun melalui browser.</div></div>
+    <div class="faq-item"><button class="faq-q">Apakah ada aplikasi mobile? <span class="faq-icon">+</span></button><div class="faq-a">Ya! EcoGuardian tersedia di iOS dan Android. Kamu juga bisa menggunakan aplikasi web lengkap di perangkat apa pun melalui browser.</div></div>
     <div class="faq-item"><button class="faq-q">Bagaimana cara mengubah foto profil? <span class="faq-icon">+</span></button><div class="faq-a">Buka Dashboard → Profil Saya → klik area foto profil → pilih foto baru dari perangkat kamu. Format yang didukung: JPG, PNG, WEBP maks 5MB.</div></div>
   </div>
 </section>
@@ -544,7 +609,7 @@
   <div class="footer-top">
     <div class="footer-brand">
       <span class="footer-logo">Eco<em>Guardian</em></span>
-      <p>Mewujudkan Medan yang lebih bersih dan berkelanjutan, dimulai dari satu laporan pada satu waktu. Bersama ribuan warga, kita bergerak menjaga lingkungan dan membangun kota yang lebih baik untuk masa depan.</p>
+      <p>Membuat komunitas Medan menjadi lebih baik, satu laporan dalam satu waktu. Bergabunglah dengan ribuan warga yang membangun kota lebih bersih bersama.</p>
     </div>
     <div class="footer-col"><h4>Navigasi</h4><ul>
       <li><a href="#features">Fitur</a></li>
@@ -554,13 +619,15 @@
       <li><a href="#faq">FAQ</a></li>
     </ul></div>
     <div class="footer-col"><h4>Akun</h4><ul>
-      <li><a href="#" onclick="openModal('register')">Daftar Sekarang</a></li>
+      <li><a href="#" onclick="openModal('register')">Daftar Gratis</a></li>
       <li><a href="#" onclick="openModal('login')">Masuk</a></li>
       <li><a href="dashboard.html">Dashboard</a></li>
     </ul></div>
     <div class="footer-col"><h4>Dukungan</h4><ul>
       <li><a href="#faq">Pusat Bantuan</a></li>
       <li><a href="#">Kontak</a></li>
+      <li><a href="#">Privasi</a></li>
+      <li><a href="#">Syarat</a></li>
     </ul></div>
   </div>
   <div class="footer-bottom"><span>© 2026 EcoGuardian. Seluruh hak cipta dilindungi.</span><div class="socials"><a href="#" title="Twitter">𝕏</a><a href="#" title="LinkedIn">in</a><a href="#" title="GitHub">⌥</a><a href="#" title="Instagram">◎</a></div></div>
@@ -578,7 +645,7 @@
     <button class="btn btn-green btn-full" style="margin-top:.5rem" id="loginBtn" onclick="doLogin()">Masuk</button>
     <div class="divider">atau</div>
     <div class="switch-link">Belum punya akun? <a onclick="switchModal('loginModal','registerModal')">Daftar sekarang</a></div>
-    <div style="margin-top:.75rem;text-align:center;font-size:.8rem;color:var(--muted)">
+    <div style="margin-top:.75rem;text-align:center;font-size:.8rem;color:var(--muted)">Demo: <strong>admin@fixit.com</strong> / <strong>password123</strong></div>
   </div>
 </div>
 
