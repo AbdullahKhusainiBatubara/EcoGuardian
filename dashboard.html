@@ -535,13 +535,19 @@ function updateAvatarUI(url) {
 
 /* API */
 async function apiFetch(endpoint, method, body) {
-  method = method || 'GET';
-  var token = localStorage.getItem('fixit_token');
-  var opts  = { method: method, headers: { 'Content-Type': 'application/json' } };
-  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
-  if (body) opts.body = JSON.stringify(body);
-  var res = await fetch(BASE_URL + '/' + endpoint, opts);
-  return res.json();
+    method = method || 'GET';
+    var token = localStorage.getItem('fixit_token');
+    var opts  = { method: method, headers: { 'Content-Type': 'application/json' } };
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    if (body)  opts.body = JSON.stringify(body);
+
+    // ✅ Tambahan ini — kirim token juga lewat URL sebagai cadangan
+    var sep = endpoint.includes('?') ? '&' : '?';
+    var url = BASE_URL + '/' + endpoint;
+    if (token) url += sep + '_token=' + token;
+
+    var res = await fetch(url, opts);
+    return res.json();
 }
 
 async function apiFetchForm(endpoint, formData) {

@@ -3,10 +3,10 @@
 // api/config.php
 // =============================================
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'fixit_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_HOST', 'sql213.infinityfree.com');
+define('DB_NAME', 'if0_41875047_fixit_db');
+define('DB_USER', 'if0_41875047');
+define('DB_PASS', 'vE3e8pOK2aPjTym');
 define('DB_CHAR', 'utf8mb4');
 define('TOKEN_EXPIRE_HOURS', 24);
 
@@ -14,7 +14,7 @@ define('TOKEN_EXPIRE_HOURS', 24);
 define('UPLOAD_DIR',      __DIR__ . '/../uploads/');
 define('UPLOAD_REPORTS',  __DIR__ . '/../uploads/reports/');
 define('UPLOAD_AVATARS',  __DIR__ . '/../uploads/avatars/');
-define('UPLOAD_URL',      'uploads/');
+define('UPLOAD_URL', 'https://ecoguardian.free.nf//uploads/');
 define('MAX_FILE_SIZE',   5 * 1024 * 1024); // 5MB
 define('ALLOWED_TYPES',   ['image/jpeg','image/png','image/webp','image/gif']);
 
@@ -52,12 +52,33 @@ function jsonResponse(array $data, int $code = 200): void {
 }
 
 function getAuthUser(): ?array {
-    $headers = getallheaders();
-    $auth    = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-    if (!preg_match('/^Bearer\s+(.+)$/i', $auth, $m)) return null;
-    $token = trim($m[1]);
-    $db    = getDB();
-    $stmt  = $db->prepare(
+    $token = '';
+
+    // Cara 1: Header Authorization (standar)
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        $auth = $_SERVER['HTTP_AUTHORIZATION'];
+        if (preg_match('/^Bearer\s+(.+)$/i', $auth, $m)) {
+            $token = trim($m[1]);
+        }
+
+    // Cara 2: Redirect header (LiteSpeed InfinityFree)
+    } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        if (preg_match('/^Bearer\s+(.+)$/i', $auth, $m)) {
+            $token = trim($m[1]);
+        }
+
+    // Cara 3: Query string fallback (?_token=xxx)
+    } elseif (!empty($_GET['_token'])) {
+        $token = trim($_GET['_token']);
+    }
+
+    // Kalau token kosong, return null
+    if (!$token) return null;
+
+    // Cari user berdasarkan token di database
+    $db   = getDB();
+    $stmt = $db->prepare(
         'SELECT u.* FROM users u
          JOIN sessions s ON s.user_id = u.id
          WHERE s.token = ? AND s.expires_at > NOW() AND u.is_active = 1 LIMIT 1'
@@ -65,7 +86,6 @@ function getAuthUser(): ?array {
     $stmt->execute([$token]);
     return $stmt->fetch() ?: null;
 }
-
 function requireAuth(): array {
     $user = getAuthUser();
     if (!$user) jsonResponse(['success'=>false,'message'=>'Unauthorized'], 401);

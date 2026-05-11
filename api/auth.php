@@ -64,15 +64,16 @@ switch ($action) {
         break;
 
     // ─── LOGOUT ────────────────────────────────────────────
-    case 'logout':
-        $user    = requireAuth();
-        $headers = getallheaders();
-        $auth    = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-        preg_match('/Bearer\s+(.+)/i', $auth, $m);
-        $token   = trim($m[1] ?? '');
-        getDB()->prepare('DELETE FROM sessions WHERE token = ?')->execute([$token]);
-        jsonResponse(['success'=>true,'message'=>'Logout berhasil']);
-        break;
+ case 'logout':
+    $user  = requireAuth();
+    $auth  = $_SERVER['HTTP_AUTHORIZATION'] 
+          ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
+          ?? '';
+    preg_match('/Bearer\s+(.+)/i', $auth, $m);
+    $token = trim($m[1] ?? $_GET['_token'] ?? '');
+    getDB()->prepare('DELETE FROM sessions WHERE token = ?')->execute([$token]);
+    jsonResponse(['success'=>true,'message'=>'Logout berhasil']);
+    break;
 
     // ─── ME ────────────────────────────────────────────────
     case 'me':
